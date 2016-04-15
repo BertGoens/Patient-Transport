@@ -1,0 +1,22 @@
+﻿@{
+    ViewBag.Title = "Dokter Status";
+}
+
+
+@{
+    var ds = Request.Cookies[Patient_Transport.Models.Constants.Request.DOKTER_CONSULT];
+    if (ds == null) {
+        //Lezen dokters met database connectie
+        List<SelectListItem> listItems = new List<SelectListItem>();
+    @Html.DropDownList("Dokters", listItems, new { @class = "form-control" });
+    } else {
+        ds.Expires.AddDays(10);
+
+    }
+    
+}
+
+<label>Zoek dokter: </label>
+
+
+<h2>Dokter Status</h2>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using Patient_Transport.Models.Domain;
 
 namespace Patient_Transport.Models.Application {
     /// <summary>
@@ -17,6 +18,7 @@ namespace Patient_Transport.Models.Application {
         PT() {
             Account = new Account();
             StartupDate = DateTime.Now;
+            SavDb = new OAZP_TestEntities();
         }
 
         public static PT Instance {
@@ -41,5 +43,7 @@ namespace Patient_Transport.Models.Application {
         /// Everything interfering with the AD goes trough this
         /// </summary>
         public Account Account { get; private set; }
+
+        public OAZP_TestEntities SavDb { get; private set; }
     }
 }

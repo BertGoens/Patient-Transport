@@ -13,8 +13,9 @@ namespace Patient_Transport {
             routes.MapRoute(
                 name: "",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Login", action = "Index", id = UrlParameter.Optional }
+                defaults: new { controller = "Account", action = "Index", id = UrlParameter.Optional }
             );
+            
         }
     }
 }

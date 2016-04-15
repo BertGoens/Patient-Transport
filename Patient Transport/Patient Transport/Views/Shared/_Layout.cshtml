@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width" />
     <title>@ViewBag.Title</title>
     @Styles.Render("~/Content/site")
-    
+    @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
     @if(User.Identity.IsAuthenticated) {

@@ -43,19 +43,37 @@ namespace Patient_Transport.Models.Application {
         }
 
         private void populateGroups() {
+            //Bind with QueryUser to do search queries via LDAP
+            var context = new PrincipalContext(ContextType.Domain, _domainName); //_container
+            bool loggedIn = context.ValidateCredentials(_qryUsername, _qryPassword);
+            if (!loggedIn) {
+                System.Diagnostics.Debug.WriteLine("NOT LOGGED IN!?!");
+            }
             //Create GroupPrincipal objects for the groups if possible
-            using (var context = new PrincipalContext(ContextType.Domain, _domainName, _container)) {
+            using (context) {
                 foreach (var grp in Groups) {
-                    try {
+                    using (var searcher = new PrincipalSearcher()) {
+                        var sp = new GroupPrincipal(context, grp.GroupName);
+                        searcher.QueryFilter = sp;
+                        try {
+                            var findGroup = searcher.FindOne() as GroupPrincipal;
+                            grp.GroupPrincipal = findGroup;
+                        } catch (PrincipalOperationException) {
+                            System.Diagnostics.Debug.WriteLine("Group not found: {0}", grp.GroupName);
+                        }
+                    }
+                    /*
+                     
                         using (var qryGroup = GroupPrincipal.FindByIdentity(context, IdentityType.Name, grp.GroupName)) {
                             grp.GroupPrincipal = qryGroup;
                         }
-                    } catch (PrincipalOperationException ex) {
+                    
                         //A group is not found
                         System.Diagnostics.Debug.WriteLine("A group is not found: " + grp.GroupName);
                         ex.ToString();
                         //System.Diagnostics.Debug.WriteLine(ex);
-                    }                    
+                    }       
+                    */ 
                 }
             }
         }
@@ -86,34 +104,35 @@ namespace Patient_Transport.Models.Application {
         public PatientTransportPrincipal BuildAccount(LoginModel viewModel) {
             //User already exists, check if he has rights to our application
 
-            // Get UserPrincipal Object from user
-
-            //1. Check what groups the user is a member of
-            UserPrincipal thisUser = null;
-
-            using (var context = new PrincipalContext(ContextType.Domain)) {
-                thisUser = UserPrincipal.FindByIdentity(context, User.Identity.Name);
-                UserPrincipal.FindByIdentity(context, IdentityType.Guid, "GUID");
-                //thisUser.EmailAddress;
-                //User.Identity.
+            UserPrincipal up;
+            using (var context = new PrincipalContext(ContextType.Domain, _domainName, "OU=ACL,OU=Groups,DC=sav,DC=com")) {
+                up = UserPrincipal.FindByIdentity(context, viewModel.UserName);
             }
+
+            var gropus = up.GetGroups();
+            System.Diagnostics.Debug.WriteLine(gropus);
             
             var userPermissions = new List<UserType>();
             for (int i = 0; i < Groups.Length; i++) {
-                if (thisUser.IsMemberOf(Groups[i].GroupPrincipal)) {
+                if (up.IsMemberOf(Groups[i].GroupPrincipal)) {
                     userPermissions.Add(Groups[i].UserType);
                 }
             }
 
-            //2. Get links
-            // !TOOD! Save as html?
-            //3. Save links
-            
+            //UserPrinicpal object omzetten naar PatientTransportPrincipal
+            PatientTransportPrincipal cUser = new PatientTransportPrincipal(viewModel.UserName);
+            cUser.FirstName = up.Name;
+            cUser.LastName = up.Surname;
+            cUser.EmployeeId = up.EmployeeId;
+            cUser.Guid = (Guid)up.Guid;
+            cUser.Roles = userPermissions.ToArray();
+
+            return cUser;
         }
 
     }
 
-    internal enum UserType {
+    public enum UserType {
         Dokter_Invoer,
         Verdiep,
         Dispatch,
@@ -131,6 +150,9 @@ namespace Patient_Transport.Models.Application {
             this.UserType = userType;
         }
 
+        public override string ToString() {
+            return string.Format("{0} {1} {2}", GroupName, UserType.ToString(), GroupPrincipal.DisplayName);
+        }
     }
 
     internal class PT_PermissionLinks {
@@ -140,6 +162,10 @@ namespace Patient_Transport.Models.Application {
         public PT_PermissionLinks(string[] links, UserType ut) {
             this.Links = links;
             this.UserType = ut;
+        }
+
+        public override string ToString() {
+            return string.Format("{0} {1}", Links.Count(), UserType);
         }
     }
 

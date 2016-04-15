@@ -2,6 +2,9 @@
 namespace Patient_Transport.Models {
     public abstract class Constants {
 
+        /// <summary>
+        /// Kijk naar de Web.config om hun waardes te zien.
+        /// </summary>
         public abstract class WebConfig {
             public static string AD_DOMAIN_NAME = "AD_Domain_Name";
             public static string AD_CONTAINER = "AD_Container";
@@ -26,5 +29,24 @@ namespace Patient_Transport.Models {
         }
 
         public static string SESSION_LINKS = "User_Links";
+
+        public abstract class Database {
+        }
+
+        public abstract class Request {
+            public static string DOKTER_CONSULT = "Dokter_Consult";
+        }
+
+        public abstract class Controllers {
+            public abstract class Account {
+                public static string GET_Index = "Index";
+                public static string POST_Login = "Login";
+                public static string POST_Logout = "Logout";
+            }
+
+            public abstract class Home {
+                public static string GET_INDEX = "Index";
+            }
+        }
     }
 }

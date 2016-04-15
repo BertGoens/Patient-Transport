@@ -7,7 +7,7 @@
 <section id="loginForm">
 <h2>Use a local account to log in.</h2>
 
-@using (Html.BeginForm("Login", "Login", FormMethod.Post)) {
+@using (Html.BeginForm("Login", "Account", FormMethod.Post)) {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
 

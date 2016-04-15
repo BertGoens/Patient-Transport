@@ -4,36 +4,37 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 using System.Web.Security;
+using Patient_Transport.Models;
 using Patient_Transport.Models.Application;
 using Patient_Transport.Models.ViewModel;
 
 namespace Patient_Transport.Controllers {
     public class AccountController : BaseController {
-        private PT _pt = PT.Instance;
 
         //
-        // GET: /Login/
+        // GET: /Account/
         [AllowAnonymous]
         public ActionResult Index() {
             return View("LDAP");
         }
 
         //
-        // POST: /Login/Login
+        // POST: /Account/Login
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel viewModel) {
+            
             if (Membership.ValidateUser(viewModel.UserName, viewModel.Password)) {
                 //LDAP USER
-                PatientTransportPrincipal thisUser = _pt.Account.BuildAccount(viewModel);
+                PatientTransportPrincipal thisUser = _PatTrans.Account.BuildAccount(viewModel);
 
                 if (thisUser.Roles.Length < 1) {
                     //Incorrect user, no rights to use our app
                     FormsAuthentication.SignOut();
                     ViewBag.ErrorMessage = "Geen rechtten om de applicatie te gebruiken";
-                    return View("LDAP");
+                    return RedirectToAction(Constants.Controllers.Account.GET_Index);
 
                 } else {
                     //Make a cookie
@@ -58,21 +59,21 @@ namespace Patient_Transport.Controllers {
                     Response.Cookies.Add(faCookie);
 
                     //Send to user home link
-                    return RedirectToAction("Index", "Home");
+                    
+                    return RedirectToAction(Constants.Controllers.Home.GET_INDEX, "Home");
                 }
             } //User not authenticated
-
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(Constants.Controllers.Account.GET_Index);
         }
 
         //
-        // POST: Login/Logout
+        // POST: Account/Logout
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Logout() {
             FormsAuthentication.SignOut();
-            return RedirectToAction("Index");
+            return RedirectToAction(Constants.Controllers.Account.GET_Index);
         }
     }
 }
